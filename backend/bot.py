@@ -8,16 +8,28 @@ from aiogram.types import WebAppInfo
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.utils.markdown import hbold, hcode
 
-# === НАСТРОЙКИ ===
+# === ПРОВЕРКА ПЕРЕМЕННЫХ ОКРУЖЕНИЯ ===
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-WEB_APP_URL = os.getenv("WEB_APP_URL", "https://your-mini-app.up.railway.app")
-YOUR_ADMIN_ID = int(os.getenv("ADMIN_TELEGRAM_ID"))  # Твой Telegram ID
+WEB_APP_URL = os.getenv("WEB_APP_URL", "")
+ADMIN_TELEGRAM_ID_STR = os.getenv("ADMIN_TELEGRAM_ID")
 
 if not BOT_TOKEN:
-    raise ValueError("BOT_TOKEN не установлен!")
-if not YOUR_ADMIN_ID:
-    raise ValueError("ADMIN_TELEGRAM_ID не установлен!")
+    raise ValueError("❌ Переменная BOT_TOKEN не установлена в Railway!")
 
+if not WEB_APP_URL:
+    raise ValueError("❌ Переменная WEB_APP_URL не установлена в Railway!")
+
+if not ADMIN_TELEGRAM_ID_STR:
+    raise ValueError("❌ Переменная ADMIN_TELEGRAM_ID не установлена в Railway!")
+
+try:
+    YOUR_ADMIN_ID = int(ADMIN_TELEGRAM_ID_STR)
+except ValueError:
+    raise ValueError("❌ ADMIN_TELEGRAM_ID должен быть числом (например: 123456789)!")
+
+print(f"[INFO] ✅ Бот настроен. Админ ID: {YOUR_ADMIN_ID}")
+
+# === ИНИЦИАЛИЗАЦИЯ ===
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
@@ -40,7 +52,7 @@ async def handle_webapp_data(message: types.Message):
         data = json.loads(message.web_app_data.data)
         user = message.from_user
 
-        # === 1. Ответ пользователю ===
+        # === Ответ пользователю ===
         goals = ", ".join(data.get("goal", [])) or "не указано"
         products = ", ".join(data.get("product_type", [])) or "не указано"
         
@@ -52,7 +64,7 @@ async def handle_webapp_data(message: types.Message):
             f"Скоро пришлю демо-версию! 🚀"
         )
 
-        # === 2. Пересылка тебе в личку ===
+        # === Уведомление админу ===
         brief_text = (
             f"📥 {hbold('Новый бриф')} от @{user.username or '—'} (ID: {user.id})\n\n"
             f"👤 Имя: {user.full_name}\n"
@@ -73,14 +85,15 @@ async def handle_webapp_data(message: types.Message):
             parse_mode="HTML"
         )
 
-        # === 3. Лог в консоль (для Railway Logs) ===
-        print(f"[BRIEF] От {user.id} (@{user.username}) → {json.dumps(data, indent=2, ensure_ascii=False)}")
+        print(f"[BRIEF] Успешно отправлен админу. От: {user.id} (@{user.username})")
 
     except Exception as e:
-        logging.error(f"Ошибка обработки брифа: {e}")
-        await message.answer("❌ Произошла ошибка. Попробуй позже.")
+        error_msg = f"❌ Ошибка обработки брифа: {e}"
+        logging.error(error_msg)
+        print(error_msg)
+        await message.answer("⚠️ Произошла ошибка. Разработчик уже получил уведомление.")
 
-# === Фиктивный HTTP-сервер для Railway (обход health-check) ===
+# === ФИКТИВНЫЙ HTTP-СЕРВЕР ДЛЯ RAILWAY ===
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
@@ -95,7 +108,7 @@ def run_health_server():
     server = HTTPServer(("0.0.0.0", port), HealthHandler)
     server.serve_forever()
 
-# === Запуск ===
+# === ЗАПУСК ===
 async def main():
     # Запускаем health-сервер в фоне
     health_thread = threading.Thread(target=run_health_server, daemon=True)
