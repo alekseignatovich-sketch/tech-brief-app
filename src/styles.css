@@ -1,0 +1,62 @@
+:root {
+  --bg: #0a0a0a;
+  --text: #ffffff;
+  --btn-red: #ff3b30;
+  --font-size: 18px;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: var(--font-size);
+}
+
+.container {
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+input, textarea, select {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 16px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: white;
+  font-size: var(--font-size);
+}
+
+.red-btn {
+  background: var(--btn-red);
+  color: white;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: var(--font-size);
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.red-btn:hover {
+  opacity: 0.9;
+}
+
+.snowflake {
+  width: 16px;
+  height: 16px;
+  filter: invert(1);
+}
