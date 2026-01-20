@@ -1,0 +1,22 @@
+# railway.toml
+[build]
+builder = "docker"
+
+[deploy]
+# Основной сервис — Telegram-бот (Python)
+startCommand = "python backend/bot.py"
+
+# Но мы также хотим задеплоить Mini App как статический сайт
+# → Используем Docker для сборки всего
+
+[[services]]
+name = "telegram-bot"
+source = "./backend"
+env = { PYTHON_VERSION = "3.11" }
+
+[[services]]
+name = "mini-app"
+source = "./mini-app"
+staticSite = true
+buildCommand = "npm install && npm run build"
+outputDirectory = "dist"
