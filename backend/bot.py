@@ -8,26 +8,17 @@ from aiogram.types import WebAppInfo
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.utils.markdown import hbold, hcode
 
-# === ПРОВЕРКА ПЕРЕМЕННЫХ ОКРУЖЕНИЯ ===
+# === ЖЁСТКО ЗАДАННЫЙ АДМИН ID (твой) ===
+YOUR_ADMIN_ID = 1300197924  # Alekseyigna
+
+# === ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ ===
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-WEB_APP_URL = os.getenv("WEB_APP_URL", "")
-ADMIN_TELEGRAM_ID_STR = os.getenv("ADMIN_TELEGRAM_ID")
+WEB_APP_URL = os.getenv("WEB_APP_URL", "https://your-mini-app.up.railway.app")
 
 if not BOT_TOKEN:
-    raise ValueError("❌ Переменная BOT_TOKEN не установлена в Railway!")
+    raise ValueError("❌ BOT_TOKEN не установлен в Railway!")
 
-if not WEB_APP_URL:
-    raise ValueError("❌ Переменная WEB_APP_URL не установлена в Railway!")
-
-if not ADMIN_TELEGRAM_ID_STR:
-    raise ValueError("❌ Переменная ADMIN_TELEGRAM_ID не установлена в Railway!")
-
-try:
-    YOUR_ADMIN_ID = int(ADMIN_TELEGRAM_ID_STR)
-except ValueError:
-    raise ValueError("❌ ADMIN_TELEGRAM_ID должен быть числом (например: 123456789)!")
-
-print(f"[INFO] ✅ Бот настроен. Админ ID: {YOUR_ADMIN_ID}")
+print(f"[INFO] ✅ Бот запущен. Админ: {YOUR_ADMIN_ID}")
 
 # === ИНИЦИАЛИЗАЦИЯ ===
 bot = Bot(token=BOT_TOKEN)
@@ -65,6 +56,7 @@ async def handle_webapp_data(message: types.Message):
         )
 
         # === Уведомление админу ===
+        print(f"[DEBUG] Отправляю уведомление админу {YOUR_ADMIN_ID}...")
         brief_text = (
             f"📥 {hbold('Новый бриф')} от @{user.username or '—'} (ID: {user.id})\n\n"
             f"👤 Имя: {user.full_name}\n"
@@ -84,14 +76,13 @@ async def handle_webapp_data(message: types.Message):
             text=brief_text,
             parse_mode="HTML"
         )
-
-        print(f"[BRIEF] Успешно отправлен админу. От: {user.id} (@{user.username})")
+        print("[SUCCESS] Уведомление успешно отправлено!")
 
     except Exception as e:
-        error_msg = f"❌ Ошибка обработки брифа: {e}"
+        error_msg = f"❌ Ошибка: {e}"
         logging.error(error_msg)
         print(error_msg)
-        await message.answer("⚠️ Произошла ошибка. Разработчик уже получил уведомление.")
+        await message.answer("⚠️ Произошла ошибка. Разработчик уже уведомлён.")
 
 # === ФИКТИВНЫЙ HTTP-СЕРВЕР ДЛЯ RAILWAY ===
 import threading
@@ -110,7 +101,7 @@ def run_health_server():
 
 # === ЗАПУСК ===
 async def main():
-    # Запускаем health-сервер в фоне
+    # Запускаем health-сервер
     health_thread = threading.Thread(target=run_health_server, daemon=True)
     health_thread.start()
     
